@@ -2,144 +2,152 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sorveteria PRO - Versão Estável</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sorveteria PRO - Final</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         :root {
-            --pink: #ff85a2; --pink-dark: #ef6281; --blue: #0984e3; --green: #27ae60;
+            --pink: #ff85a2; --pink-dark: #ef6281; --green: #27ae60;
             --dark: #2d3436; --gray-bg: #f5f6fa; --border: #dcdde1; --white: #ffffff;
         }
 
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background-color: var(--gray-bg); overflow: hidden; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--gray-bg); overflow: hidden; }
 
         /* Sidebar */
-        #sidebar { width: 350px; background: var(--white); border-right: 2px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
+        #sidebar { width: 320px; background: var(--white); border-right: 2px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
         .header-box { padding: 20px; background: var(--dark); color: white; text-align: center; }
         #lista-comandas { flex-grow: 1; overflow-y: auto; padding: 15px; }
         
         .aba-comanda { 
             padding: 15px; background: white; border: 1px solid var(--border); border-radius: 10px; 
-            margin-bottom: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
         }
-        .aba-comanda.ativa { border-left: 10px solid var(--pink); background: #fff5f7; border-color: var(--pink); }
+        .aba-comanda.ativa { border-left: 8px solid var(--pink); background: #fff5f7; border-color: var(--pink); }
 
-        /* Workspace */
-        #workspace { flex-grow: 1; display: flex; flex-direction: column; padding: 25px; height: 100vh; }
+        /* Área Principal */
+        #workspace { flex-grow: 1; display: flex; flex-direction: column; padding: 20px; height: 100vh; }
         #view-comanda { display: none; flex-direction: column; height: 100%; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
-        .grid-produtos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .card-prod { background: white; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; border: 2px solid transparent; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        
+        .grid-produtos { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; margin-bottom: 15px; flex-shrink: 0; }
+        .card-prod { 
+            background: white; padding: 15px; border-radius: 12px; text-align: center; cursor: pointer; 
+            font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 2px solid transparent; 
+        }
+        .card-prod:hover { border-color: var(--pink); }
 
-        /* Lista de Itens com Scroll */
+        /* Container da Comanda com Botão Fixo */
         #detalhes-comanda { 
             background: white; border-radius: 15px; border: 1px solid var(--border);
-            display: flex; flex-direction: column; flex-grow: 1; overflow: hidden;
+            display: flex; flex-direction: column; flex-grow: 1; overflow: hidden; position: relative;
         }
-        #itens-carrinho { flex-grow: 1; overflow-y: auto; padding: 20px; background: #fafafa; }
+        #itens-carrinho { 
+            flex-grow: 1; overflow-y: auto; padding: 15px; background: #fafafa;
+            padding-bottom: 100px; /* Espaço para o rodapé fixo */
+        }
         .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
 
-        .footer-comanda { padding: 20px; background: white; border-top: 2px solid #f1f1f1; }
-        .display-total { font-size: 2.2rem; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .footer-comanda { 
+            position: absolute; bottom: 0; left: 0; width: 100%;
+            padding: 15px; background: white; border-top: 2px solid #f1f1f1; 
+            box-shadow: 0 -5px 10px rgba(0,0,0,0.03);
+        }
+        .display-total { font-size: 1.8rem; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 10px; }
 
         /* Botões */
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
         .btn-pink { background: var(--pink); color: white; }
-        .btn-green { background: var(--green); color: white; width: 100%; font-size: 1.2rem; }
+        .btn-green { background: var(--green); color: white; width: 100%; font-size: 1.1rem; }
         .btn-red { background: #ff7675; color: white; }
         .btn-gray { background: #dfe6e9; color: var(--dark); }
 
         /* Modais */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 400px; }
-        input, select { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid var(--border); border-radius: 10px; font-size: 1rem; }
+        .modal-content { background: white; padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid var(--border); border-radius: 10px; }
+
+        .hidden { display: none; }
+        #relatorio-export { padding: 40px; background: white; color: black; font-family: sans-serif; }
     </style>
 </head>
 <body>
 
     <div id="modal-senha" class="modal">
         <div class="modal-content">
-            <h2 style="margin-top:0;">🔒 Senha Requerida</h2>
-            <input type="password" id="campo-senha-cancelar" placeholder="Senha do Gerente">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-red" onclick="validarCancelamento()" style="flex:1">Confirmar</button>
-                <button class="btn btn-gray" onclick="fecharModais()" style="flex:1">Voltar</button>
-            </div>
+            <h3>🔒 Autorização Gerente</h3>
+            <input type="password" id="campo-senha-cancelar" placeholder="Senha">
+            <button class="btn btn-red" style="width:100%" onclick="validarCancelamento()">Confirmar Cancelar</button>
+            <button class="btn btn-gray" style="width:100%; margin-top:10px" onclick="fecharModais()">Sair</button>
         </div>
     </div>
 
     <div id="modal-input" class="modal">
         <div class="modal-content">
-            <h2 id="modal-input-titulo">Título</h2>
+            <h3 id="modal-input-titulo">Entrada</h3>
             <input type="text" id="modal-input-campo">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-green" id="btn-modal-confirmar" style="flex:1">OK</button>
-                <button class="btn btn-gray" onclick="fecharModais()" style="flex:1">Sair</button>
-            </div>
+            <button class="btn btn-green" id="btn-modal-confirmar" style="width:100%">Confirmar</button>
         </div>
     </div>
 
     <aside id="sidebar">
         <div class="header-box">
-            <h3 id="op-nome">CAIXA FECHADO</h3>
-            <button class="btn btn-green" id="btn-turno-acao" style="width:100%" onclick="controleTurno()">Abrir Turno</button>
+            <h4 id="op-nome" style="margin:0 0 10px 0; font-size: 0.8rem; opacity: 0.8;">CAIXA FECHADO</h4>
+            <button class="btn" id="btn-turno-acao" style="width:100%" onclick="controleTurno()"></button>
         </div>
-        <div style="padding: 20px;"><button class="btn btn-pink" style="width: 100%;" onclick="novaComandaCustom()">+ Nova Comanda</button></div>
+        <div style="padding: 15px;"><button class="btn btn-pink" style="width:100%" onclick="novaComandaCustom()">+ Nova Comanda</button></div>
         <div id="lista-comandas"></div>
     </aside>
 
     <main id="workspace">
         <div id="view-comanda">
             <div class="top-bar">
-                <h1 id="titulo-cliente" style="margin:0; color: var(--pink-dark);"></h1>
+                <h2 id="titulo-cliente" style="margin:0; color: var(--pink-dark);"></h2>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn btn-red" onclick="solicitarSenhaCancelamento()">❌ Cancelar</button>
-                    <button class="btn btn-gray" onclick="minimizar()">🔒 Minimizar</button>
+                    <button class="btn btn-red" onclick="solicitarSenhaCancelamento()">❌</button>
+                    <button class="btn btn-gray" onclick="minimizar()">🔒</button>
                 </div>
             </div>
+            
             <div class="grid-produtos">
-                <div class="card-prod" onclick="addPesoCustom()">⚖️ PESO</div>
+                <div class="card-prod" onclick="addPesoCustom()">⚖️ PESO (Kg)</div>
                 <div class="card-prod" onclick="addItem('Picolé', 5)">🍓 PICOLÉ</div>
                 <div class="card-prod" onclick="addItem('Cascão', 15)">🍦 CASCÃO</div>
                 <div class="card-prod" onclick="addItem('Água', 4)">💧 ÁGUA</div>
             </div>
+
             <div id="detalhes-comanda">
                 <div id="itens-carrinho"></div>
                 <div class="footer-comanda">
-                    <div class="display-total"><span>Total:</span><span>R$ <span id="total-venda">0,00</span></span></div>
-                    <button class="btn btn-green" onclick="abrirPagamento()">Finalizar e Receber</button>
+                    <div class="display-total"><span>Total:</span><span id="total-venda">0,00</span></div>
+                    <button class="btn btn-green" onclick="finalizarComanda()">FECHAR CONTA</button>
                 </div>
             </div>
         </div>
-        <div id="aviso-inicial" style="margin:auto; text-align:center; color:#ccc;"><h1>🍦 Selecione uma comanda</h1></div>
+        <div id="aviso-inicial" style="margin:auto; text-align:center; color:#ccc;"><h1>🍦 PDV Sorveteria</h1><p>Selecione ou crie uma comanda.</p></div>
     </main>
 
-    <div id="modal-pgto" class="modal">
-        <div class="modal-content">
-            <h2 id="pgto-total-txt">Total: R$ 0,00</h2>
-            <select id="metodo"><option value="PIX">PIX</option><option value="DINHEIRO">DINHEIRO</option></select>
-            <button class="btn btn-green" onclick="confirmarVenda()">Confirmar</button>
-            <button class="btn btn-gray" style="width:100%; margin-top:10px;" onclick="fecharModais()">Voltar</button>
-        </div>
-    </div>
+    <div id="relatorio-export" class="hidden"></div>
 
 <script>
     const s_key = "0o5r1q3w4e1q"; 
-    let db = JSON.parse(localStorage.getItem('sorv_estavel')) || { operador: "", inicio: "", vendas: [], comandas: [] };
+    let db = JSON.parse(localStorage.getItem('sorv_v9_final')) || { operador: "", inicio: "", vendas: [], comandas: [] };
     let comandaAtivaId = null;
 
-    function salvar() { localStorage.setItem('sorv_estavel', JSON.stringify(db)); render(); }
+    function salvar() { localStorage.setItem('sorv_v9_final', JSON.stringify(db)); render(); }
     function fecharModais() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
 
     function render() {
         const btnTurno = document.getElementById('btn-turno-acao');
+        const opTxt = document.getElementById('op-nome');
         if(db.inicio) {
-            btnTurno.innerText = "Fechar Turno"; btnTurno.style.background = "#ff7675";
-            document.getElementById('op-nome').innerText = `OP: ${db.operador}`;
+            btnTurno.innerText = "FECHAR TURNO"; btnTurno.className = "btn btn-red";
+            opTxt.innerText = `OPERADOR: ${db.operador}`;
         } else {
-            btnTurno.innerText = "Abrir Turno"; btnTurno.style.background = "#27ae60";
-            document.getElementById('op-nome').innerText = "CAIXA FECHADO";
+            btnTurno.innerText = "ABRIR TURNO"; btnTurno.className = "btn btn-green";
+            opTxt.innerText = "CAIXA FECHADO";
         }
 
         const lista = document.getElementById('lista-comandas');
@@ -152,11 +160,12 @@
             document.getElementById('view-comanda').style.display = "flex";
             document.getElementById('aviso-inicial').style.display = "none";
             const c = db.comandas.find(x => x.id === comandaAtivaId);
-            document.getElementById('titulo-cliente').innerText = `👤 ${c.cliente}`;
-            document.getElementById('total-venda').innerText = c.total.toFixed(2);
+            document.getElementById('titulo-cliente').innerText = `👤 ${c.cliente.toUpperCase()}`;
+            document.getElementById('total-venda').innerText = c.total.toFixed(2).replace('.', ',');
             const itensDiv = document.getElementById('itens-carrinho');
             itensDiv.innerHTML = "";
             c.itens.forEach(it => { itensDiv.innerHTML += `<div class="item-row"><span>${it.n}</span><span>R$ ${it.v.toFixed(2)}</span></div>`; });
+            itensDiv.scrollTop = itensDiv.scrollHeight;
         } else {
             document.getElementById('view-comanda').style.display = "none";
             document.getElementById('aviso-inicial').style.display = "flex";
@@ -167,8 +176,25 @@
         if (!db.inicio) {
             abrirModalInput("Nome do Operador", "Nome", (n) => { db.operador = n; db.inicio = new Date().toLocaleString(); salvar(); });
         } else {
-            if(confirm("Fechar caixa?")) { db = { operador: "", inicio: "", vendas: [], comandas: [] }; salvar(); location.reload(); }
+            if (db.comandas.length > 0) return alert("Feche as comandas abertas!");
+            if (confirm("Deseja encerrar o turno e baixar o relatório?")) gerarPDF();
         }
+    }
+
+    function gerarPDF() {
+        const rel = document.getElementById('relatorio-export');
+        rel.classList.remove('hidden');
+        let total = db.vendas.reduce((a, b) => a + b.total, 0);
+        let html = `<h1>Relatório de Fechamento</h1><p>Operador: ${db.operador}</p><p>Data: ${db.inicio}</p><hr>`;
+        db.vendas.forEach(v => { html += `<p>${v.hora} - ${v.cliente}: R$ ${v.total.toFixed(2)}</p>`; });
+        html += `<hr><h2>TOTAL DO TURNO: R$ ${total.toFixed(2)}</h2>`;
+        rel.innerHTML = html;
+
+        html2pdf().from(rel).save(`caixa_${db.operador}.pdf`).then(() => {
+            db = { operador: "", inicio: "", vendas: [], comandas: [] };
+            localStorage.removeItem('sorv_v9_final');
+            location.reload();
+        });
     }
 
     function abrirModalInput(titulo, placeholder, callback) {
@@ -181,33 +207,35 @@
 
     function novaComandaCustom() {
         if (!db.inicio) return alert("Abra o turno!");
-        abrirModalInput("Nova Comanda", "Cliente", (n) => { db.comandas.push({id: Date.now(), cliente: n, itens: [], total: 0}); salvar(); });
+        abrirModalInput("Cliente/Mesa", "Nome", (n) => {
+            db.comandas.push({ id: Date.now(), cliente: n, itens: [], total: 0 });
+            salvar();
+        });
     }
 
-    function addItem(n, v) { 
+    function addItem(n, v, g = null) {
         const c = db.comandas.find(x => x.id === comandaAtivaId);
-        c.itens.push({n, v}); c.total += v; salvar(); 
+        if (g) { v = (v/1000) * g; n += ` (${g}g)`; }
+        c.itens.push({ n, v });
+        c.total = c.itens.reduce((acc, i) => acc + i.v, 0);
+        salvar();
     }
 
-    function addPesoCustom() { abrirModalInput("Peso (g)", "400", (g) => addItem('Sorvete Kg', (85/1000)*parseFloat(g))); }
-
+    function addPesoCustom() { abrirModalInput("Peso (Gramas)", "Ex: 400", (g) => addItem('Peso', 85, parseFloat(g))); }
     function solicitarSenhaCancelamento() { document.getElementById('modal-senha').style.display = 'flex'; }
+    
     function validarCancelamento() {
         if (document.getElementById('campo-senha-cancelar').value === s_key.replace(/\D/g, "")) {
             db.comandas = db.comandas.filter(x => x.id !== comandaAtivaId);
             comandaAtivaId = null; fecharModais(); salvar();
-        } else { alert("Senha Errada!"); }
+        } else { alert("Senha Incorreta!"); }
     }
 
-    function abrirPagamento() { 
+    function finalizarComanda() {
         const c = db.comandas.find(x => x.id === comandaAtivaId);
-        document.getElementById('pgto-total-txt').innerText = `Total: R$ ${c.total.toFixed(2)}`;
-        document.getElementById('modal-pgto').style.display = 'flex'; 
-    }
-
-    function confirmarVenda() {
+        db.vendas.push({ cliente: c.cliente, total: c.total, hora: new Date().toLocaleTimeString() });
         db.comandas = db.comandas.filter(x => x.id !== comandaAtivaId);
-        comandaAtivaId = null; fecharModais(); salvar();
+        comandaAtivaId = null; salvar();
     }
 
     function minimizar() { comandaAtivaId = null; render(); }
